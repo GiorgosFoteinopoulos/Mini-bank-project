@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Log in')}">
+</head>
+<body>
+
+<header th:replace="~{fragments/layout :: topbar}"></header>
+<main class="container narrow">
+    <section class="card">
+        <h2>Log in</h2>
+        <p class="alert alert-error" th:if="${error}" th:text="${error}">Wrong account number or PIN.</p>
+        <p class="alert alert-success" th:if="${param.logout}">You have been logged out.</p>
+
+        <form th:action="@{/login}" method="post" class="form">
+            <label for="accountNumber">Account number</label>
+            <input id="accountNumber" name="accountNumber" type="text" inputmode="numeric"
+            th:value="${accountNumber}" required autofocus>
+            <label for="pin">PIN</label>
+            <input id="pin" name="pin" type="password" inputmode="numeric" maxlength="4" required>
+
+            <button type="submit" class="btn btn-primary">Log in</button>
+        </form>
+
+        <p class="hint">Demo: 1001 / 1234 * 1002 / 5678 * 1003 / 4321</p>
+    </section>
+</main>
+
+</body>
+</html>

@@ -32,13 +32,13 @@
                 <td th:text="${account.holder}">George</td>
                 <td class="num"
                     th:classappend="${account.balance.signum() < 0} ? 'negative'"
-                    th:text="${account.balance}">150.00</td>
+                    th:text="${@money.format(account.balance)}">150.00</td>
             </tr>
             </tbody>
         </table>
 
         <p class="summary">
-            Total deposits: <strong th:text="${total}">0.00</strong> EUR
+            Total deposits: <strong th:text="${@money.formal(total)}">0.00</strong> EUR
             · Customers: <span th:text="${#strings.listJoin(customers, ', ')}">Anna, George</span>
         </p>
     </section>
