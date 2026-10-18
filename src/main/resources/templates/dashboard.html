@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Dashboard')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: topbar}"></header>
+<main class="container">
+    <h2 class="page-title">Hello, <span th:text="${account.holder}">George</span></h2>
+
+    <div class="stats">
+        <div class="stat">
+            <span class="stat-label">Balance</span>
+            <span class="stat-value"
+                  th:classappend="${account.balance.signum() < 0} ? 'negative'"
+                  th:text="${account.balance} + ' EUR'">150.00 EUR</span>
+        </div>
+        <div class="stat">
+            <span class="stat-label">Available to withdraw</span>
+            <span class="stat-value" th:text="${account.availableBalance} + ' EUR'">350.00</span>
+        </div>
+       <div class="stat">
+           <span class="stat-label">Left today</span>
+           <span class="stat-value" th:text="${account.availableBalance} + ' EUR'">350.00</span>
+       </div>
+        <div class="stat">
+            <span class="stat-label" th:text="${account.remainingDailyLimit} + ' EUR'">500.00 EUR</span>
+        </div>
+        <div class="stat">
+            <span class="stat-label" th:text="${account.accountType} + ' account'">Checking account</span>
+            <span class="stat-detail" th:text="${extraInfo}">Overdraft up to 200.00 EUR</span>
+        </div>
+    </div>
+
+    <section class="card">
+        <h3>Statement</h3>
+        <table>
+            <thead>
+            <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Description</th>
+                <th class="num">Amount</th>
+                <th class="num">Balance</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="t : ${transactions}">
+                <td th:text="${#temporals.format(t.timestamp(), 'dd/MM/yyyy HH:mm')}">16/10/2026 14:31</td>
+                <td th:text="${t.type().label}">Deposit</td>
+                <td th:text="${t.description()}">Cash deposit</td>
+                <td class="num"
+                    th:classappend="${t.type().credit} ? 'positive' : 'negative'"
+                    th:text="(${t.type().credit} ? '+' : '-') + ${t.amount()}">+50.00</td>
+                <td class="num" th:text="${t.balanceAfter()}">200.00</td>
+            </tr>
+            </tbody>
+        </table>
+        <p class="summary">
+            Total in <strong th:text="${account.totalIn}">0.00</strong> EUR ·
+            Total out: <strong th:text="${account.totalOut}">0.00</strong> EUR
+        </p>
+    </section>
+</main>
+
+</body>
+</html>

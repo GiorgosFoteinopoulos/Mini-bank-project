@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:fragment="head(title)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title th:text="${title} + ' - ' + ${bankName}">Mini Bank</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+
+<header th:fragment="topbar" class="topbar">
+    <a class="brand" th:href="@{/}" th:text="${bankName}">Mini Bank</a>
+
+    <div class="user" th:if="${currentAccount != null}">
+        <span th:text="${currentAccount.holder} + ' · #' + ${currentAccount.accountNumber}">George · #1001</span>
+        <form th:action="@{/logout}" method="post">
+            <button type="submit" class="btn btn-light">Log out</button>
+        </form>
+    </div>
+</header>
+
+</body>
+</html>
