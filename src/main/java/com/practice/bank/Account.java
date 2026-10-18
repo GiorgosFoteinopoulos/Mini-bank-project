@@ -52,7 +52,7 @@ public abstract class Account {
     }
 
     public final void withdraw(BigDecimal amount) {
-        requirePositive(amount);
+        checkWithdrawal(amount);
         debit(amount, TransactionType.WITHDRAWAL, "Cash withdrawal");
     }
 
@@ -138,7 +138,7 @@ public abstract class Account {
     }
     public abstract BigDecimal getDailyLimit();
     public BigDecimal getRemainingDailyLimit() {
-        return DAILY_LIMIT.subtract(withdrawnToday);
+        return getDailyLimit().subtract(withdrawnToday);
     }
 
     public void resetDailyLimit() {

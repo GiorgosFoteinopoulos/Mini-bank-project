@@ -21,11 +21,8 @@
         </div>
        <div class="stat">
            <span class="stat-label">Left today</span>
-           <span class="stat-value" th:text="${@money.format(account.availableBalance)} + ' EUR'">350.00</span>
+           <span class="stat-value" th:text="${@money.format(account.remainingDailyLimit)} + ' EUR'">350.00</span>
        </div>
-        <div class="stat">
-            <span class="stat-label" th:text="${@money.format(account.remainingDailyLimit)} + ' EUR'">500.00 EUR</span>
-        </div>
         <div class="stat">
             <span class="stat-label" th:text="${account.accountType} + ' account'">Checking account</span>
             <span class="stat-detail" th:text="${extraInfo}">Overdraft up to 200.00 EUR</span>
@@ -50,22 +47,23 @@
             </form>
 
             <p class="hint"
-               th:text="|Available ${@money.format(account.availableBalance)} EUR · left today ${account.remainingDailyLimit} EUR|">
+               th:text="|Available ${@money.format(account.availableBalance)} EUR · left today ${@money.format(account.remainingDailyLimit)} EUR|">
                 Available 350.00 EUR · left today 500.00 EUR
             </p>
         </section>
+        <section class="card">
+            <h3>Transfer</h3>
+            <form th:action="@{/account/transfer}" method="post" class="form">
+                <label for="transfer-target">To account #</label>
+                <input id="transfer-target" name="targetAccount" type="number" min="0.01" required>
+                <label for="transfer-amount">Amount (EUR)</label>
+                <input id="transfer-amount" name="amount" type="number" step="0.01" min="1" required>
+                <button type="submit" class="btn btn-primary">Transfer</button>
+            </form>
+        </section>
     </div>
 
-    <section class="card">
-        <h3>Tranfer</h3>
-        <form th:action="@{/account/transfer}" method="post" class="form">
-            <label for="transfer-target">To account #</label>
-            <input id="transfer-target" name="targetAccount" type="number" min="1" required>
-            <label for="transfer-amount">Amount (EUR)</label>
-            <input id="transfer-amount" name="amount" type="number" step="0.01" min="1" required>
-            <button type="submit" class="btn btn-primary">Transfer</button>
-        </form>
-    </section>
+
 
     <section class="card">
         <h3>Statement</h3>
@@ -92,7 +90,7 @@
             </tbody>
         </table>
         <p class="summary">
-            Total in <strong th:text="${@money.format(account.totalIn)}">0.00</strong> EUR ·
+            Total in: <strong th:text="${@money.format(account.totalIn)}">0.00</strong> EUR ·
             Total out: <strong th:text="${@money.format(account.totalOut)}">0.00</strong> EUR
         </p>
     </section>
