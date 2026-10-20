@@ -5,7 +5,7 @@ import com.practice.bank.Account;
 import com.practice.bank.Bank;
 import com.practice.bank.exception.BankException;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpSession;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
@@ -32,9 +32,9 @@ public class AccountActionsController {
 
     @PostMapping("/deposit")
     public String deposit(@RequestParam BigDecimal amount,
-                          HttpSession session,
+                          Authentication authentication,
                           RedirectAttributes flash) {
-        Account account = accountSession.requireAccount(session);
+        Account account = accountSession.requireAccount(authentication);
         BigDecimal amountValue = toMoney(amount);
 
         account.deposit(amountValue);
@@ -44,9 +44,9 @@ public class AccountActionsController {
 
     @PostMapping("/withdraw")
     public String withdraw(@RequestParam BigDecimal amount,
-                           HttpSession session,
+                           Authentication authentication,
                            RedirectAttributes flash) {
-        Account account = accountSession.requireAccount(session);
+        Account account = accountSession.requireAccount(authentication);
         BigDecimal amountValue = toMoney(amount);
 
         account.withdraw(amountValue);
@@ -57,9 +57,9 @@ public class AccountActionsController {
     @PostMapping("/transfer")
     public String transfer(@RequestParam long targetAccount,
                            @RequestParam BigDecimal amount,
-                           HttpSession session,
+                           Authentication authentication,
                            RedirectAttributes flash) {
-        Account account = accountSession.requireAccount(session);
+        Account account = accountSession.requireAccount(authentication);
         Account target = bank.getAccount(targetAccount);
         BigDecimal amountValue = toMoney(amount);
         account.transferTo(target, amountValue);

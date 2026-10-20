@@ -17,6 +17,47 @@
     box-sizing: border-box;
 }
 
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.card-header h3 {
+    margin: 0;
+}
+.search {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.search input {
+    padding: 0.45rem 0.7rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+}
+
+td form {
+    margin: 0;
+}
+.btn-small {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+    background: var(--primary);
+    color: white;
+}
+
+.btn-danger {
+    background: var(--danger);
+}
+.btn-plain {
+    background: transparent;
+    color: var(--primary);
+    text-decoration: none;
+}
 body {
     margin: 0;
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -59,12 +100,23 @@ body {
     margin: 2rem auto;
     padding: 0 1rem;
 }
+.container.wide {
+    max-width: 1100px;
+}
 .container.narrow {
     max-width: 420px;
 }
 
 .page-title {
     margin-top: 0;
+}
+
+.actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    align-items: start;
+    margin-bottom: 1.5rem;
 }
 
 .card {
@@ -175,6 +227,17 @@ tbody tr:hover {
     outline: 2px solid var(--primary);
     border-color: transparent;
 
+}
+.form select {
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 1rem;
+    background: white;
+}
+
+.form + .form {
+    margin-top: 1.25rem;
 }
 .btn {
     padding: 0.6rem 1rem;

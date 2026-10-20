@@ -5,6 +5,7 @@ import com.practice.bank.Account;
 import com.practice.bank.CheckingAccount;
 import com.practice.bank.SavingsAccount;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,8 +21,8 @@ public class DashboardController {
     }
 
     @GetMapping("/dashboard")
-    public String dashboard(HttpSession session, Model model) {
-        Account account = accountSession.requireAccount(session);
+    public String dashboard(Authentication authentication, Model model) {
+        Account account = accountSession.requireAccount(authentication);
         model.addAttribute("account", account);
         model.addAttribute("transactions", account.getTransactions().reversed());
         model.addAttribute("extraInfo", describe(account));

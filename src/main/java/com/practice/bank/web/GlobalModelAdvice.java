@@ -4,6 +4,7 @@ package com.practice.bank.web;
 import com.practice.bank.Account;
 import com.practice.bank.Bank;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
@@ -24,7 +25,12 @@ public class GlobalModelAdvice {
     }
 
     @ModelAttribute("currentAccount")
-    public Account currentAccount(HttpSession session) {
-        return accountSession.currentAccount(session).orElse(null);
+    public Account currentAccount(Authentication authentication) {
+        return accountSession.currentAccount(authentication).orElse(null);
+    }
+
+    @ModelAttribute("isAdmin")
+    public boolean isAdmin(Authentication authentication) {
+        return AccountSession.hasRole(authentication, "ROLE_ADMIN");
     }
 }

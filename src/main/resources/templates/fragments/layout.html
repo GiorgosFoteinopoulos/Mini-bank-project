@@ -11,8 +11,10 @@
 <header th:fragment="topbar" class="topbar">
     <a class="brand" th:href="@{/}" th:text="${bankName}">Mini Bank</a>
 
-    <div class="user" th:if="${currentAccount != null}">
-        <span th:text="${currentAccount.holder} + ' · #' + ${currentAccount.accountNumber}">George · #1001</span>
+    <div class="user" th:if="${currentAccount != null or isAdmin}">
+        <span th:if="${currentAccount != null}"
+              th:text="${currentAccount.holder} + ' · #' + ${currentAccount.accountNumber}">George · #1001</span>
+        <span th:if="${isAdmin}">Administrator</span>
         <form th:action="@{/logout}" method="post">
             <button type="submit" class="btn btn-light">Log out</button>
         </form>

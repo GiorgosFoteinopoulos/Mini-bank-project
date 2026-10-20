@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Administration')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: topbar}"></header>
+
+<main class="container wide">
+    <h2 class="page-title">Bank administration</h2>
+    <p class="alert alert-success" th:if="${success}" th:text="${success}">Done.</p>
+    <p class="alert alert-error" th:if="${error}" th:text="${error}">Something went wrong.</p>
+
+    <div class="stats">
+        <div class="stat">
+            <span class="stat-label">Accounts</span>
+            <span class="stat-value" th:text="${accountCount}">3</span>
+        </div>
+        <div class="stat">
+            <span class="stat-label">Total deposits</span>
+            <span class="stat-value" th:text="${@money.format(total)} + ' EUR'">530,00 EUR</span>
+        </div>
+        <div class="stat">
+            <span class="stat-label">Customers</span>
+            <span class="stat-detail" th:text="${#strings.listJoin(customers, ', ')}">Anna, George, Maria</span>
+        </div>
+        <div class="stat">
+            <span class="stat-label">Richest account</span>
+            <span class="stat-detail"
+                  th:text="${richest != null} ? |${richest.holder} · ${@money.format(richest.balance)} EUR| : 'none'">
+                Maria · 309,00 EUR
+            </span>
+        </div>
+    </div>
+
+    <div class="actions">
+        <section class="card">
+            <h3>Open an account</h3>
+            <form th:action="@{/admin/accounts}" method="post" class="form">
+                <label for="type">Type</label>
+                <select id="type" name="type">
+                    <option value="CHECKING">Checking (overdraft up to 200)</option>
+                    <option value="SAVINGS">Savings (3% yearly interest)</option>
+                </select>
+
+                <label for="holder">Holder name</label>
+                <input id="holder" name="holder" type="text" required>
+
+                <label for="pin">4-digit PIN</label>
+                <input id="pin" name="pin" type="password" inputmode="numeric"
+                       pattern="\d{4}" maxlength="4" title="Exactly 4 digits" required>
+
+                <label for="openingDeposit">Opening deposit (EUR)</label>
+                <input id="openingDeposit" name="openingDeposit" type="number" step="0.01" min="0" value="0" required>
+
+                <button type="submit" class="btn btn-primary">Open account</button>
+            </form>
+        </section>
+
+        <section class="card">
+            <h3>Bank operations</h3>
+
+            <form th:action="@{/admin/new-day}" method="post" class="form">
+                <p class="hint">Resets every account's daily withdrawal limit</p>
+                <button type="submit" class="btn btn-primary">Start a new day</button>
+            </form>
+
+            <form th:action="@{/admin/interest}" method="post" class="form"
+                  onsubmit="return confirm('Pay yearly interest to all savings accounts?');">
+                <p class="hint">Pays 3% yearly interest to every savings account.</p>
+                <button type="submit" class="btn btn-primary">Pay yearly interest</button>
+            </form>
+        </section>
+    </div>
+
+    <section class="card">
+        <div class="card-header">
+            <h3 th:text="${q == null or #strings.isEmpty(q)} ? 'All accounts' : |Search results for '${q}'|">
+                All accounts
+            </h3>
+            <form th:action="@{/admin}" method="get" class="search">
+                <input name="q" type="search" placeholder="Search by holder" th:value="${q}">
+                <button type="submit" class="btn btn-small">Search</button>
+                <a th:if="${q != null and !#strings.isEmpty(q)}" th:href="@{/admin}" class="btn btn-small btn-plain">Clear</a>
+            </form>
+        </div>
+
+        <table>
+            <thead>
+            <tr>
+                <th>Account #</th>
+                <th>Type</th>
+                <th>Holder</th>
+                <th class="num">Balance (EUR)</th>
+                <th class="num">Left today</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="acc : ${accounts}">
+                <td th:text="${acc.accountNumber}">1001</td>
+                <td th:text="${acc.accountType}">Checking</td>
+                <td th:text="${acc.holder}">George</td>
+                <td class="num"
+                    th:classappend="${acc.balance.signum() < 0} ? 'negative'"
+                    th:text="${@money.format(acc.balance)}">150,00</td>
+                <td class="num" th:text="${@money.format(acc.remainingDailyLimit)}">500,00</td>
+                <td class="num">
+                    <form th:action="@{/admin/accounts/{number}/close(number=${acc.accountNumber})}" method="post"
+                          onsubmit="return confirm('Close this account?');">
+                        <button type="submit" class="btn btn-small btn-danger">Close</button>
+                    </form>
+                </td>
+            </tr>
+            <tr th:if="${accounts.isEmpty()}">
+                <td colspan="6" class="hint">No accounts found.</td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+
+</body>
+</html>

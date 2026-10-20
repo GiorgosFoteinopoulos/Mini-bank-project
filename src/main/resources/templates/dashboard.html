@@ -55,7 +55,9 @@
             <h3>Transfer</h3>
             <form th:action="@{/account/transfer}" method="post" class="form">
                 <label for="transfer-target">To account #</label>
-                <input id="transfer-target" name="targetAccount" type="number" min="0.01" required>
+                <input id="transfer-target" name="targetAccount" type="text"
+                       inputmode="numeric" pattern="\d+" title="Digits only, e.g. 1003"
+                       placeholder="e.g. 1003" autocomplete="off" required>
                 <label for="transfer-amount">Amount (EUR)</label>
                 <input id="transfer-amount" name="amount" type="number" step="0.01" min="1" required>
                 <button type="submit" class="btn btn-primary">Transfer</button>

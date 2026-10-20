@@ -6,6 +6,7 @@ import com.practice.bank.Bank;
 import com.practice.bank.exception.NotLoggedInException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -13,30 +14,26 @@ import java.util.Optional;
 @Component
 public class AccountSession {
 
-    private static final String ACCOUNT_NUMBER = "accountNumber";
     private final Bank bank;
 
     public AccountSession(Bank bank) {
         this.bank = bank;
     }
 
-    public void logIn(HttpServletRequest request, Account account) {
-        request.getSession();
-        request.changeSessionId();
-        request.getSession().setAttribute(ACCOUNT_NUMBER, account.getAccountNumber());
-    }
-
-    public void logOut(HttpSession session) {
-        session.invalidate();
-    }
-
-    public Optional<Account> currentAccount(HttpSession session) {
-        if (session.getAttribute(ACCOUNT_NUMBER) instanceof Long number) {
-            return bank.findAccount(number);
+    public Optional<Account> currentAccount(Authentication authentication) {
+        if (!hasRole(authentication, "ROLE_CUSTOMER")) {
+            return Optional.empty();
         }
-        return Optional.empty();
+        return bank.findAccount(Long.parseLong(authentication.getName()));
     }
-    public Account requireAccount(HttpSession session) {
-        return currentAccount(session).orElseThrow(NotLoggedInException::new);
+
+    public Account requireAccount(Authentication authentication) {
+        return currentAccount(authentication).orElseThrow(NotLoggedInException::new);
+    }
+
+    public static boolean hasRole(Authentication authentication, String role) {
+        return authentication !=null
+                && authentication.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals(role));
     }
 }
