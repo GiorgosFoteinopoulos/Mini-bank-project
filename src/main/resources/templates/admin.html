@@ -34,22 +34,30 @@
     <div class="actions">
         <section class="card">
             <h3>Open an account</h3>
-            <form th:action="@{/admin/accounts}" method="post" class="form">
+            <form th:action="@{/admin/accounts}" th:object="${openForm}" method="post" class="form" novalidate>
+                <p class="alert alert-error" th:if="${#fields.hasAnyErrors()}">
+                    Please correct the highlighted fields.
+                </p>
                 <label for="type">Type</label>
-                <select id="type" name="type">
-                    <option value="CHECKING">Checking (overdraft up to 200)</option>
-                    <option value="SAVINGS">Savings (3% yearly interest)</option>
+                <select id="type" th:field="*{type}" th:errorclass="invalid">
+                    <option th:value="'CHECKING'">Checking (overdraft up to 200)</option>
+                    <option th:value="'SAVINGS'">Savings (3% yearly interest)</option>
                 </select>
+                <p class="field-error" th:if="${#fields.hasErrors('type')}" th:errors="*{type">Choose a type.</p>
 
                 <label for="holder">Holder name</label>
-                <input id="holder" name="holder" type="text" required>
-
+                <input id="holder" th:field="*{holder}" type="text" maxlength="50" th:errorclass="invalid" required>
+                <p class="field-error" th:if="${#fields.hasErrors('holder')}" th:errors="*{holder}">Name required.</p>
                 <label for="pin">4-digit PIN</label>
                 <input id="pin" name="pin" type="password" inputmode="numeric"
-                       pattern="\d{4}" maxlength="4" title="Exactly 4 digits" required>
+                       pattern="\d{4}" maxlength="4" title="Exactly 4 digits" required
+                       th:classappend="${#fields.hasErrors('pin')} ? 'invalid'">
+                <p class="field-error" th:if="${#fields.hasErrors('pin')}" th:errors="*{pin}">Invalid PIN.</p>
 
                 <label for="openingDeposit">Opening deposit (EUR)</label>
-                <input id="openingDeposit" name="openingDeposit" type="number" step="0.01" min="0" value="0" required>
+                <input id="openingDeposit" th:field="*{openingDeposit}" type="number" step="0.01" min="0" th:errorclass="invalid" required>
+                <p class="field-error" th:if="${#fields.hasErrors('openingDeposit')}"
+                th:errors="*{openingDeposit}">Invalid amount.</p>
 
                 <button type="submit" class="btn btn-primary">Open account</button>
             </form>

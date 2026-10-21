@@ -281,3 +281,15 @@ tbody tr:hover {
     font-size: 0.85rem;
     margin-bottom: 0;
 }
+
+.field-error {
+    color: #b42318;
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+input.invalid,
+select.invalid {
+    border-color: #b42318;
+    background-color: #fef3f2;
+}
