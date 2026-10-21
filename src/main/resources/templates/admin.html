@@ -34,7 +34,7 @@
     <div class="actions">
         <section class="card">
             <h3>Open an account</h3>
-            <form th:action="@{/admin/accounts}" th:object="${openForm}" method="post" class="form" novalidate>
+            <form th:action="@{/admin/accounts}" th:object="${openForm}" method="post" class="form">
                 <p class="alert alert-error" th:if="${#fields.hasAnyErrors()}">
                     Please correct the highlighted fields.
                 </p>
