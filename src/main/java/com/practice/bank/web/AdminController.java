@@ -6,8 +6,10 @@ import com.practice.bank.Bank;
 import com.practice.bank.exception.BankException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
@@ -33,33 +35,29 @@ public class AdminController {
 
     @GetMapping
     public String overview(@RequestParam(required = false) String q, Model model) {
-        Collection<Account> accounts = (q == null || q.isBlank())
-                ? bank.getAllAccounts()
-                : bank.findByHolder(q);
-
-        model.addAttribute("accounts", accounts);
-        model.addAttribute("q", q);
-        model.addAttribute("accountCount", bank.getNumberOfAccounts());
-        model.addAttribute("total", bank.getTotalDeposits());
-        model.addAttribute("customers", bank.getHolderNames());
-        model.addAttribute("richest", bank.findRichestAccount().orElse(null));
+        model.addAttribute("openForm", new OpenAccountForm());
+        addOverview(model, q);
         return "admin";
     }
 
     @PostMapping("/accounts")
-    public String openAccount(@RequestParam String type,
-                              @RequestParam String holder,
-                              @RequestParam String pin,
-                              @RequestParam BigDecimal openingDeposit,
+    public String openAccount(@Valid @ModelAttribute("openForm") OpenAccountForm form,
+                              BindingResult result,
+                              Model model,
                               RedirectAttributes flash) {
-        BigDecimal deposit = openingDeposit.setScale(2, RoundingMode.HALF_EVEN);
+        if (result.hasErrors()) {
+            addOverview(model, null);
+            return "admin";
+        }
 
-        Account account = switch (type) {
-            case "CHECKING" -> bank.openCheckingAccount(holder.trim(), pin.trim(), deposit);
-            case "SAVINGS" -> bank.openSavingsAccount(holder.trim(), pin.trim(), deposit);
-            default -> throw new IllegalArgumentException("Unknown account type: " + type);
+        BigDecimal deposit = form.getOpeningDeposit().setScale(2, RoundingMode.HALF_EVEN);
+        String holder = form.getHolder().strip();
+
+        Account account = switch (form.getType()) {
+            case "CHECKING" -> bank.openCheckingAccount(holder, form.getPin(), deposit);
+            case "SAVINGS" -> bank.openSavingsAccount(holder, form.getPin(), deposit);
+            default -> throw new IllegalArgumentException("Unknown account type: " + form.getType());
         };
-
         flash.addFlashAttribute("success", "Opened account #" + account.getAccountNumber()
         + " (" + account.getAccountType() + ") for " + account.getHolder() + ".");
         return "redirect:/admin";
@@ -84,9 +82,22 @@ public class AdminController {
         Map<Account, BigDecimal> payments = bank.applyYearlyInterest();
         BigDecimal total = payments.values().stream().reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        flash.addFlashAttribute("success", "Paid" + money.format(total) + "EUR interest to "
+        flash.addFlashAttribute("success", "Paid " + money.format(total) + " EUR interest to "
         + payments.size() + " savings account(s).");
         return "redirect:/admin";
+    }
+
+    private void addOverview(Model model, String q) {
+        Collection<Account> accounts = (q == null || q.isBlank())
+                ? bank.getAllAccounts()
+                : bank.findByHolder(q);
+
+        model.addAttribute("accounts", accounts);
+        model.addAttribute("q", q);
+        model.addAttribute("accountCount", bank.getNumberOfAccounts());
+        model.addAttribute("total", bank.getTotalDeposits());
+        model.addAttribute("customers", bank.getHolderNames());
+        model.addAttribute("richest", bank.findRichestAccount().orElse(null));
     }
 
     @ExceptionHandler({BankException.class, IllegalArgumentException.class})
@@ -97,7 +108,7 @@ public class AdminController {
 
     @ExceptionHandler({MethodArgumentTypeMismatchException.class, MissingServletRequestParameterException.class})
     public String handleBadInput(HttpServletRequest request) {
-        RequestContextUtils.getOutputFlashMap(request).put("error", "Please fill in all fields with valid values.");
+        RequestContextUtils.getOutputFlashMap(request).put("error", "Invalid request.");
         return "redirect:/admin";
     }
 }
