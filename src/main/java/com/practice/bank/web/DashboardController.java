@@ -2,6 +2,7 @@ package com.practice.bank.web;
 
 
 import com.practice.bank.Account;
+import com.practice.bank.Bank;
 import com.practice.bank.CheckingAccount;
 import com.practice.bank.SavingsAccount;
 import jakarta.servlet.http.HttpSession;
@@ -15,14 +16,17 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class DashboardController {
 
     private final AccountSession accountSession;
+    private final Bank bank;
 
-    public DashboardController(AccountSession accountSession) {
+    public DashboardController(AccountSession accountSession, Bank bank) {
         this.accountSession = accountSession;
+        this.bank = bank;
     }
 
     @GetMapping("/dashboard")
     public String dashboard(Authentication authentication, Model model) {
-        Account account = accountSession.requireAccount(authentication);
+        long number = accountSession.requireAccountNumber(authentication);
+        Account account = bank.getAccountWithTransactions(number);
         model.addAttribute("account", account);
         model.addAttribute("transactions", account.getTransactions().reversed());
         model.addAttribute("extraInfo", describe(account));

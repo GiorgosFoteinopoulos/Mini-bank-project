@@ -4,51 +4,80 @@ import com.practice.bank.exception.BankException;
 import com.practice.bank.exception.DailyLimitExceededException;
 import com.practice.bank.exception.InsufficientFundsException;
 import com.practice.bank.exception.InvalidAmountException;
+import jakarta.persistence.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.time.LocalDateTime;
 
+@Entity
+@Table(name= "account")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "account_type")
 public abstract class Account {
 
-    private static final BigDecimal DAILY_LIMIT = new BigDecimal("500.00");
-    private static long nextAccountNumber = 1001;
-    private final List<Transaction> transactions = new ArrayList<>();
 
-    private final long accountNumber;
-    private final String holder;
-    private final String pin;
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "account_number_gen")
+    @SequenceGenerator(name = "account_number_gen", sequenceName = "account_number_seq",
+    initialValue = 1001, allocationSize = 1)
+    private Long accountNumber;
+
+    @Version
+    private Long version;
+
+    @Column(nullable = false)
+    private String holder;
+
+    @Column(name = "pin_hash", nullable = false)
+    private String pinHash;
+
+    @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal balance;
-    private BigDecimal withdrawnToday;
+
+    @Column(name = "withdrawn_today", nullable = false, precision = 15, scale = 2)
+    private BigDecimal withdrawnToday = new BigDecimal("0.00");
+
+    @ElementCollection
+    @CollectionTable(name = "account_transaction", joinColumns = @JoinColumn(name = "account_number"))
+    @OrderColumn(name = "position")
+    private List<Transaction> transactions = new ArrayList<>();
+
+    protected Account() {
+
+    }
 
 
-    protected Account(String holder, String pin, BigDecimal openingBalance) {
+    protected Account(String holder, String pinHash, BigDecimal openingBalance) {
         if (holder == null || holder.isBlank()) {
             throw new IllegalArgumentException("Holder name is required");
         }
-        if (pin == null || !pin.matches("\\d{4}")) {
-            throw new IllegalArgumentException("PIN must be exactly 4 digits.");
+        if (pinHash == null || pinHash.isBlank()) {
+            throw new IllegalArgumentException("PIN is required.");
         }
-        if (openingBalance.compareTo(BigDecimal.ZERO) < 0) {
+        if (openingBalance == null || openingBalance.compareTo(BigDecimal.ZERO) < 0) {
             throw new IllegalArgumentException("Opening balance cannot be negative");
         }
 
-        this.accountNumber = nextAccountNumber++;
         this.holder = holder;
-        this.pin = pin;
+        this.pinHash = pinHash;
         this.balance = openingBalance;
         transactions.add(new Transaction(LocalDateTime.now(), TransactionType.OPENING, openingBalance, openingBalance, "Account opened"));
-        this.withdrawnToday = new BigDecimal("0.00");
+    }
+
+    public abstract String getAccountType();
+
+    public abstract BigDecimal getDailyLimit();
+
+    public BigDecimal getAvailableBalance() {
+        return balance;
     }
 
     public final void deposit(BigDecimal amount) {
         requirePositive(amount);
-        credit(amount, TransactionType.DEPOSIT, "Cash withdrawal");
-    }
-
-    public boolean checkPin(String attempt) {
-        return pin.equals(attempt);
+        credit(amount, TransactionType.DEPOSIT, "Cash Deposit");
     }
 
     public final void withdraw(BigDecimal amount) {
@@ -71,6 +100,10 @@ public abstract class Account {
     public final void addInterest(BigDecimal amount) {
         requirePositive(amount);
         credit(amount, TransactionType.INTEREST, "Yearly interest");
+    }
+
+    public boolean checkPin(String attempt, PasswordEncoder encoder) {
+        return attempt != null && encoder.matches(attempt, pinHash);
     }
 
     private void checkWithdrawal(BigDecimal amount) {
@@ -104,9 +137,6 @@ public abstract class Account {
         }
     }
 
-    public List<Transaction> getTransactions() {
-        return List.copyOf(transactions);
-    }
 
     public BigDecimal getTotalIn() {
         return transactions.stream()
@@ -126,20 +156,22 @@ public abstract class Account {
     public long getAccountNumber() {
         return accountNumber;
     }
-    public abstract String getAccountType();
+
     public String getHolder() {
         return holder;
     }
     public BigDecimal getBalance() {
         return balance;
     };
-    public BigDecimal getAvailableBalance() {
-        return balance;
-    }
-    public abstract BigDecimal getDailyLimit();
+
     public BigDecimal getRemainingDailyLimit() {
         return getDailyLimit().subtract(withdrawnToday);
     }
+
+    public List<Transaction> getTransactions() {
+        return List.copyOf(transactions);
+    }
+
 
     public void resetDailyLimit() {
         withdrawnToday = new BigDecimal("0.00");
@@ -154,11 +186,11 @@ public abstract class Account {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof Account other)) return false;
-        return this.accountNumber == other.accountNumber;
+        return accountNumber != null && accountNumber.equals(other.accountNumber);
     }
 
     @Override
     public int hashCode() {
-        return Long.hashCode(accountNumber);
+        return Account.class.hashCode();
     }
 }

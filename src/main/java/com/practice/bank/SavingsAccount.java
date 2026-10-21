@@ -1,14 +1,23 @@
 package com.practice.bank;
 
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+
 import java.math.BigDecimal;
 
+
+@Entity
+@DiscriminatorValue("SAVINGS")
 public class SavingsAccount extends Account implements InterestBearing {
 
     private static final BigDecimal DAILY_LIMIT = new BigDecimal("200.00");
     private static final BigDecimal INTEREST_RATE = new BigDecimal("0.03");
 
-    public SavingsAccount(String holder, String pin, BigDecimal openingBalance) {
-        super(holder, pin, openingBalance);
+    protected SavingsAccount() {
+
+    }
+    public SavingsAccount(String holder, String pinHash, BigDecimal openingBalance) {
+        super(holder, pinHash, openingBalance);
     }
 
     @Override

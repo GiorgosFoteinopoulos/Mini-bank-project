@@ -4,7 +4,9 @@ package com.practice.bank.web;
 import com.practice.bank.Account;
 import com.practice.bank.Bank;
 import com.practice.bank.exception.BankException;
+import com.practice.bank.web.MoneyFormat;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -22,23 +24,21 @@ public class AccountActionsController {
 
     private final Bank bank;
     private final AccountSession accountSession;
-    private final MoneyFormat money;
+    private final MoneyFormat moneyFormat;
 
-    public AccountActionsController(Bank bank, AccountSession accountSession, MoneyFormat money) {
+    public AccountActionsController(Bank bank, AccountSession accountSession, MoneyFormat moneyFormat) {
         this.bank = bank;
         this.accountSession = accountSession;
-        this.money = money;
+        this.moneyFormat = moneyFormat;
     }
 
     @PostMapping("/deposit")
     public String deposit(@RequestParam BigDecimal amount,
                           Authentication authentication,
                           RedirectAttributes flash) {
-        Account account = accountSession.requireAccount(authentication);
-        BigDecimal amountValue = toMoney(amount);
-
-        account.deposit(amountValue);
-        flash.addFlashAttribute("success", "Deposited " + money.format(amountValue) + " EUR.");
+        BigDecimal money = toMoney(amount);
+        bank.deposit(accountSession.requireAccountNumber(authentication), money);
+        flash.addFlashAttribute("success","Deposited " + moneyFormat.format(money) + " EUR.");
         return "redirect:/dashboard";
     }
 
@@ -46,11 +46,10 @@ public class AccountActionsController {
     public String withdraw(@RequestParam BigDecimal amount,
                            Authentication authentication,
                            RedirectAttributes flash) {
-        Account account = accountSession.requireAccount(authentication);
-        BigDecimal amountValue = toMoney(amount);
 
-        account.withdraw(amountValue);
-        flash.addFlashAttribute("success", "Withdrew " + money.format(amountValue) + " EUR.");
+        BigDecimal money = toMoney(amount);
+        bank.withdraw(accountSession.requireAccountNumber(authentication), money );
+        flash.addFlashAttribute("success", "Withdrew " + moneyFormat.format(money) + " EUR.");
         return "redirect:/dashboard";
     }
 
@@ -59,13 +58,17 @@ public class AccountActionsController {
                            @RequestParam BigDecimal amount,
                            Authentication authentication,
                            RedirectAttributes flash) {
-        Account account = accountSession.requireAccount(authentication);
-        Account target = bank.getAccount(targetAccount);
-        BigDecimal amountValue = toMoney(amount);
-        account.transferTo(target, amountValue);
+        BigDecimal money = toMoney(amount);
+        Account target = bank.transfer(accountSession.requireAccountNumber(authentication), targetAccount, money);
+        flash.addFlashAttribute("success", "Transferred " + moneyFormat.format(money) + " EUR to"
+        + target.getHolder() + " (#" + target.getAccountNumber() + ").");
+        return "redirect:/dashboard";
+    }
 
-        flash.addFlashAttribute("success",
-                "Transferred " + money.format(amountValue) + " EUR to " + target.getHolder() + " (#" + target.getAccountNumber() + ").");
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public String handleConcurrentUpdate(HttpServletRequest request) {
+        RequestContextUtils.getOutputFlashMap(request)
+                .put("error", "The account was changed at the same time by another operation. Please try againt.");
         return "redirect:/dashboard";
     }
 

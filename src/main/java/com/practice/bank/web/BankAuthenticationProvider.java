@@ -1,6 +1,5 @@
 package com.practice.bank.web;
 
-import com.practice.bank.Account;
 import com.practice.bank.Bank;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -45,12 +44,13 @@ public class BankAuthenticationProvider implements AuthenticationProvider {
             throw new BadCredentialsException(LOGIN_FAILED);
         }
 
-        Optional<Account> account = parseAccountNumber(username)
-                .flatMap(bank::findAccount)
-                .filter(a -> a.checkPin(password));
-        return account
-                .map(a -> authenticated(username, "ROLE_CUSTOMER"))
-                .orElseThrow(() -> new BadCredentialsException(LOGIN_FAILED));
+        boolean valid = parseAccountNumber(username)
+                .map(number -> bank.checkPin(number, password))
+                .orElse(false);
+        if (valid) {
+            return authenticated(username, "ROLE_CUSTOMER");
+        }
+        throw new BadCredentialsException(LOGIN_FAILED);
     }
 
     @Override

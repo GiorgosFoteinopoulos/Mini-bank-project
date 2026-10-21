@@ -23,15 +23,21 @@ public class DemoDataSeeder implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-       Account george = bank.openCheckingAccount("George", "1234", new BigDecimal("150.00"));
-       bank.openSavingsAccount("Anna", "5678", new BigDecimal("80.00"));
-       Account maria = bank.openSavingsAccount("Maria", "4321", new BigDecimal("300.00"));
+      long existing = bank.getNumberOfAccounts();
+      if (existing > 0) {
+          log.info("Database already contains {} accounts. No demo data added", existing);
+          return;
+      }
 
-       george.deposit(new BigDecimal("50.00"));
-       george.withdraw(new BigDecimal("20.00"));
-       george.transferTo(maria, new BigDecimal("30.00"));
-       bank.applyYearlyInterest();
+      Account george = bank.openCheckingAccount("George", "1234", new BigDecimal("150.00"));
+      bank.openSavingsAccount("Anna", "5678", new BigDecimal("80.00"));
+      Account maria = bank.openSavingsAccount("Maria", "4321", new BigDecimal("300.00"));
 
-       log.info("Demo data loaded: {} accounts", bank.getNumberOfAccounts());
+      bank.deposit(george.getAccountNumber(), new BigDecimal("50.00"));
+      bank.withdraw(george.getAccountNumber(), new BigDecimal("20.00"));
+      bank.transfer(george.getAccountNumber(), maria.getAccountNumber(), new BigDecimal("30.00"));
+      bank.applyYearlyInterest();
+
+      log.info("Demo data loaded: {} accounts", bank.getNumberOfAccounts());
     }
 }
