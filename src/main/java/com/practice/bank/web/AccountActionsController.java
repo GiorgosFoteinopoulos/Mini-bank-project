@@ -60,7 +60,7 @@ public class AccountActionsController {
                            RedirectAttributes flash) {
         BigDecimal money = toMoney(amount);
         Account target = bank.transfer(accountSession.requireAccountNumber(authentication), targetAccount, money);
-        flash.addFlashAttribute("success", "Transferred " + moneyFormat.format(money) + " EUR to"
+        flash.addFlashAttribute("success", "Transferred " + moneyFormat.format(money) + " EUR to "
         + target.getHolder() + " (#" + target.getAccountNumber() + ").");
         return "redirect:/dashboard";
     }
@@ -68,7 +68,7 @@ public class AccountActionsController {
     @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
     public String handleConcurrentUpdate(HttpServletRequest request) {
         RequestContextUtils.getOutputFlashMap(request)
-                .put("error", "The account was changed at the same time by another operation. Please try againt.");
+                .put("error", "The account was changed at the same time by another operation. Please try again.");
         return "redirect:/dashboard";
     }
 
