@@ -1,5 +1,6 @@
 package com.practice.bank.web;
 
+import com.practice.bank.web.validation.Pin;
 import jakarta.validation.constraints.*;
 
 import java.math.BigDecimal;
@@ -14,8 +15,7 @@ public class OpenAccountForm {
     @Size(max = 50, message = "Holder name can be at most 50 characters.")
     private String holder;
 
-    @NotBlank(message = "PIN is required")
-    @Pattern(regexp = "\\d{4}", message = "PIN must be exactly 4 digits.")
+    @Pin
     private String pin;
 
     @NotNull(message = "Opening deposit is required.")
